@@ -20,11 +20,11 @@ void Heap::heapifyDown(int x){
 }; 
     // returns min element from heap without deleting it 
 HeapNode Heap::peek(){ 
-    return HeapNode(4, 5); 
+    return HeapNode(0, 0); 
 }; 
 // returns min element from heap and removes it from heap 
 HeapNode Heap::extractMin(){ 
-    return HeapNode(1, 2); 
+    return HeapNode(0, 0); 
 }; 
 // inserts element into the heap 
 void Heap::insert(HeapNode elt){ 

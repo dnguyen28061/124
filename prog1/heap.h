@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<vector> 
+
 struct HeapNode; 
 struct Heap{
     private: 
