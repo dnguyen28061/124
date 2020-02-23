@@ -1,12 +1,107 @@
 
 #include<stdio.h>
 #include<iostream> 
-#include<vector> 
+#include<vector>
+#include<deque>
+#include <unordered_map>
 
 // generates MSTs and calculates the average weight of the MST based on number of vertices 
 // usage: ./ 0 numpoints, numtrials, dimension 
 
 // argc == number of arguments provided (4 by default). Access these elements by indexing into argv array 
+
+
+struct HeapNode{
+    public: 
+        int id; 
+        int val; 
+    HeapNode(int num1, int num2){
+        id = num1; 
+        val = num2; 
+    }
+}; 
+
+struct Heap {
+    public: 
+
+    std::deque<HeapNode>heap;
+    std::unordered_map<int, int>map;
+    int k;
+
+    Heap(int num) {
+        k = num; 
+    };    
+
+    HeapNode peek(){ 
+        return this->heap[0]; 
+    }; 
+
+    // returns min element from heap and removes it from heap 
+    HeapNode extractMin(){ 
+        HeapNode min = this->heap.front();
+        HeapNode top = this->heap.back();
+        this->heap.pop_back();
+        this->heap.pop_front();
+        this->heap.push_front(top);
+        heapifyDown(0); 
+        return min; 
+    }; 
+    // inserts element into the heap 
+    void insert(HeapNode elt){ 
+        map[elt.id] = this->heap.size() - 1;
+        this->heap.push_back(elt);
+        heapifyUp(this->heap.size() - 1); 
+    }; 
+
+    // Decreases key of the given element
+    void decreaseKey(int newKey, int vertex){ 
+        HeapNode node = this->heap[this->map[vertex]];
+        node.val = newKey;
+    }; 
+
+    private: 
+        
+    void heapifyUp(int idx){ 
+        int child = idx; 
+        int parent = (idx - 1)/k; 
+        while(this->heap[child].val < this->heap[parent].val && child > 0) { 
+            this->map[this->heap[child].id] = parent;
+            this->map[this->heap[parent].id] = child;
+            std::swap(this->heap[child], this->heap[parent]);
+            child = parent;
+            parent = (child - 1)/k; 
+        }
+    }; 
+
+
+    void heapifyDown(int idx){
+        HeapNode parent = this->heap[idx];
+        int mindex = k * idx + 1;
+        if (k * idx + 1 <= this->heap.size() - 1){
+            HeapNode min = this->heap[k * idx + 1];
+            for (int i = k * idx + 1; i <= k * idx + k; i++) {
+                if (i <= this->heap.size() - 1) {
+                    if (min.val > this->heap[i].val) {
+                        min = this->heap[i];
+                        mindex = i;
+                    }
+                }
+                
+            }
+
+            if (min.val < parent.val) {
+                this->map[min.id] = idx;
+                this->map[parent.id] = mindex;
+                std::swap(this->heap[idx], this->heap[mindex]);
+                heapifyDown(mindex);
+            }
+        }
+        
+        return; 
+    }; 
+         
+};
+
 
 struct Set{
     public: 
@@ -53,9 +148,41 @@ struct Set{
 
 
 int main(int argc, char* argv[]){ 
-    std::vector<Set>newSet = {Set(5), Set(4)}; 
-    newSet[0].link(&newSet[1]); 
-    std::cout << newSet[0].find()->vertex << "\n"; 
-    std::cout << newSet[1].find()->vertex << "\n"; 
+    // std::vector<Set>newSet = {Set(5), Set(4)}; 
+    // newSet[0].link(&newSet[1]); 
+    // std::cout << newSet[0].find()->vertex << "\n"; 
+    // std::cout << newSet[1].find()->vertex << "\n"; 
 
+    HeapNode a = HeapNode(1, 8);
+    HeapNode b = HeapNode(2, 1);
+    HeapNode c = HeapNode(3, 4);
+    HeapNode d = HeapNode(4, 2);
+    HeapNode e = HeapNode(5, 12);
+    HeapNode f = HeapNode(6, 7);
+    HeapNode g = HeapNode(7, 3);
+    HeapNode h = HeapNode(8, 10);
+    HeapNode i = HeapNode(9, 6);
+    HeapNode j = HeapNode(10, 11);
+    HeapNode k = HeapNode(11, 5);
+    HeapNode l = HeapNode(12, 9);
+
+    Heap heap = Heap(3);
+    heap.insert(a);
+    heap.insert(b);
+    heap.insert(c);
+    heap.insert(d);
+    heap.insert(e);
+    heap.insert(f);
+    heap.insert(h);
+    heap.insert(i);
+    heap.insert(j);
+    heap.insert(k);
+    heap.insert(l);
+
+    std::cout << heap.extractMin().id << "\n"; 
+    std::cout << heap.extractMin().id << "\n"; 
+    std::cout << heap.extractMin().id << "\n"; 
+    std::cout << heap.extractMin().id << "\n"; 
+    std::cout << heap.extractMin().id << "\n"; 
+    std::cout << heap.extractMin().id << "\n"; 
 }
