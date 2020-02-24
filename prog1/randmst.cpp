@@ -38,9 +38,15 @@ struct Heap {
 
     // returns min element from heap and removes it from heap 
     HeapNode extractMin(){ 
+        if (this->heap.size() == 0) {
+            throw std::invalid_argument("Heap Size 0!");
+        }
         HeapNode min = this->heap.front();
         HeapNode top = this->heap.back();
         this->heap.pop_back();
+        if (this->heap.size() == 0) {
+            return min;
+        }
         this->heap.pop_front();
         this->heap.push_front(top);
         heapifyDown(0); 
@@ -48,15 +54,15 @@ struct Heap {
     }; 
     // inserts element into the heap 
     void insert(HeapNode elt){ 
-        map[elt.id] = this->heap.size() - 1;
+        this->map[elt.id] = this->heap.size();
         this->heap.push_back(elt);
         heapifyUp(this->heap.size() - 1); 
     }; 
 
     // Decreases key of the given element
     void decreaseKey(int newKey, int vertex){ 
-        HeapNode node = this->heap[this->map[vertex]];
-        node.val = newKey;
+        this->heap[this->map[vertex]].val = newKey;
+        heapifyUp(this->map[vertex]);
     }; 
 
     private: 
@@ -115,61 +121,50 @@ struct Set{
         parent = this; 
     };    
 
-    Set* find(){
+    Set find(){
+        // printf("%d", this->parent == this); 
         if (this->parent != this){
-            Set* parent = this->parent->find(); 
-            this->parent = parent; 
+            Set parent = this->parent->find(); 
+            this->parent = &parent; 
         }
-        return this->parent; 
+        return *this; 
     };    
 
-    void makeUnion(Set* nodeToUnionWith){
-        Set* parent1 = this->find(); 
-        Set* parent2 = nodeToUnionWith->find(); 
+    void makeUnion(Set nodeToUnionWith){
         
-        parent1->link(parent2); 
+        Set parent1 = this->find(); 
+        Set parent2 = nodeToUnionWith.find(); 
+        
+        parent1.link(parent2); 
     }; 
     // replace two sets containing x and y by their union.   
-    void link(Set* nodeToLinkWith){
-        Set* smallRankNode = this; 
-        Set* largeRankNode = nodeToLinkWith; 
+    void link(Set nodeToLinkWith){
         
-        if (smallRankNode->rank > largeRankNode->rank){ 
-            Set* temp = smallRankNode; 
+        Set smallRankNode = *this; 
+        Set largeRankNode = nodeToLinkWith; 
+        
+        if (smallRankNode.rank > largeRankNode.rank){ 
+            Set temp = smallRankNode; 
             smallRankNode = largeRankNode; 
             largeRankNode = temp; 
         }
         // only increase rank when ranks are equal. 
-        if(smallRankNode->rank == largeRankNode->rank){ 
-            largeRankNode->rank++; 
+        if(smallRankNode.rank == largeRankNode.rank){ 
+            largeRankNode.rank++; 
         }
         // point smaller rank node to larger rank node. 
-        smallRankNode->parent = largeRankNode; 
-
+        smallRankNode.parent = &largeRankNode; 
     }; // connect two nodes with union by rank 
 };
 
 
 
 int main(int argc, char* argv[]){ 
-    std::vector<Set *> setList; 
-    for(int i = 0; i < 10; i++){ 
-        setList.push_back(new Set(i)); 
-    }
-    for(int i = 0; i < 10; i++){ 
-        std::cout << setList[i]->find()->vertex << "\n"; 
-    }
-    setList[0]->makeUnion(setList[1]); 
-    setList[9]->makeUnion(setList[8]);
-    std::cout << setList[0]->find()->vertex << "\n"; 
-    std::cout << setList[1]->find()->vertex << "\n";
-    std::cout << setList[9]->find()->vertex << "\n"; 
-    std::cout << setList[8]->find()->vertex << "\n";
-    std::cout << setList[2]->find()->vertex << "\n"; 
+    // std::vector<Set>newSet = {Set(5), Set(4)}; 
+    // newSet[0].link(&newSet[1]); 
+    // std::cout << newSet[0].find()->vertex << "\n"; 
+    // std::cout << newSet[1].find()->vertex << "\n"; 
 
-    for(int i = 0; i < 10; i++){ 
-        free(setList[i]); 
-    }
     HeapNode a = HeapNode(1, 8);
     HeapNode b = HeapNode(2, 1);
     HeapNode c = HeapNode(3, 4);
@@ -183,18 +178,28 @@ int main(int argc, char* argv[]){
     HeapNode k = HeapNode(11, 5);
     HeapNode l = HeapNode(12, 9);
 
-    Heap heap = Heap(3);
+    Heap heap = Heap(2);
     heap.insert(a);
     heap.insert(b);
     heap.insert(c);
     heap.insert(d);
     heap.insert(e);
     heap.insert(f);
+    heap.insert(g);
     heap.insert(h);
     heap.insert(i);
     heap.insert(j);
     heap.insert(k);
     heap.insert(l);
+    heap.decreaseKey(-1, 8);
+    heap.decreaseKey(-2, 10);
+    // printf("no seg");
+    // std::vector<Set>newSet; 
+    // newSet.push_back(Set(5)); 
+    // newSet.push_back(Set(4)); 
+    // newSet[0].makeUnion(newSet[1]); 
+    // std::cout << newSet[0].find().vertex << "\n"; 
+    // std::cout << newSet[1].find().vertex << "\n"; 
 
     std::cout << heap.extractMin().id << "\n"; 
     std::cout << heap.extractMin().id << "\n"; 
@@ -202,4 +207,10 @@ int main(int argc, char* argv[]){
     std::cout << heap.extractMin().id << "\n"; 
     std::cout << heap.extractMin().id << "\n"; 
     std::cout << heap.extractMin().id << "\n"; 
+    std::cout << heap.extractMin().id << "\n"; 
+    std::cout << heap.extractMin().id << "\n"; 
+    std::cout << heap.extractMin().id << "\n"; 
+    std::cout << heap.extractMin().id << "\n"; 
+    std::cout << heap.extractMin().id << "\n"; 
+    std::cout << heap.extractMin().id << "\n";
 }
