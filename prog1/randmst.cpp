@@ -2,6 +2,8 @@
 #include<stdio.h>
 #include<iostream> 
 #include<vector>
+#include <chrono>
+#include <random>
 #include<deque>
 #include <unordered_map>
 
@@ -159,40 +161,19 @@ struct Set{
 
 
 
+float randomgen(){
+    long long seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::mt19937 mt(seed);
+    std::uniform_real_distribution<float> dist(0.0, 1.0);
+    return dist(mt);
+};
+
+
 int main(int argc, char* argv[]){ 
     // std::vector<Set>newSet = {Set(5), Set(4)}; 
     // newSet[0].link(&newSet[1]); 
     // std::cout << newSet[0].find()->vertex << "\n"; 
     // std::cout << newSet[1].find()->vertex << "\n"; 
-
-    HeapNode a = HeapNode(1, 8);
-    HeapNode b = HeapNode(2, 1);
-    HeapNode c = HeapNode(3, 4);
-    HeapNode d = HeapNode(4, 2);
-    HeapNode e = HeapNode(5, 12);
-    HeapNode f = HeapNode(6, 7);
-    HeapNode g = HeapNode(7, 3);
-    HeapNode h = HeapNode(8, 10);
-    HeapNode i = HeapNode(9, 6);
-    HeapNode j = HeapNode(10, 11);
-    HeapNode k = HeapNode(11, 5);
-    HeapNode l = HeapNode(12, 9);
-
-    Heap heap = Heap(2);
-    heap.insert(a);
-    heap.insert(b);
-    heap.insert(c);
-    heap.insert(d);
-    heap.insert(e);
-    heap.insert(f);
-    heap.insert(g);
-    heap.insert(h);
-    heap.insert(i);
-    heap.insert(j);
-    heap.insert(k);
-    heap.insert(l);
-    heap.decreaseKey(-1, 8);
-    heap.decreaseKey(-2, 10);
     // printf("no seg");
     // std::vector<Set>newSet; 
     // newSet.push_back(Set(5)); 
@@ -201,16 +182,4 @@ int main(int argc, char* argv[]){
     // std::cout << newSet[0].find().vertex << "\n"; 
     // std::cout << newSet[1].find().vertex << "\n"; 
 
-    std::cout << heap.extractMin().id << "\n"; 
-    std::cout << heap.extractMin().id << "\n"; 
-    std::cout << heap.extractMin().id << "\n"; 
-    std::cout << heap.extractMin().id << "\n"; 
-    std::cout << heap.extractMin().id << "\n"; 
-    std::cout << heap.extractMin().id << "\n"; 
-    std::cout << heap.extractMin().id << "\n"; 
-    std::cout << heap.extractMin().id << "\n"; 
-    std::cout << heap.extractMin().id << "\n"; 
-    std::cout << heap.extractMin().id << "\n"; 
-    std::cout << heap.extractMin().id << "\n"; 
-    std::cout << heap.extractMin().id << "\n";
 }
