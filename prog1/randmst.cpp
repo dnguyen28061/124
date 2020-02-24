@@ -2,10 +2,11 @@
 #include<stdio.h>
 #include<iostream> 
 #include<vector>
-#include <chrono>
-#include <random>
+#include<cassert>
+#include<chrono>
+#include<random>
 #include<deque>
-#include <unordered_map>
+#include<unordered_map>
 
 // generates MSTs and calculates the average weight of the MST based on number of vertices 
 // usage: ./ 0 numpoints, numtrials, dimension 
@@ -168,6 +169,14 @@ float randomgen(){
     return dist(mt);
 };
 
+float euclideanDist(std::vector<float>p1, std::vector<float>p2) { 
+    assert(p1.size() == p2.size());
+    float dist = 0.0;
+    for (int i = 0; i < p1.size(); i++){
+        dist += pow((p1[i] - p2[i]), 2.0);
+    }
+    return dist;
+}
 
 int main(int argc, char* argv[]){ 
     // std::vector<Set>newSet = {Set(5), Set(4)}; 
@@ -181,5 +190,8 @@ int main(int argc, char* argv[]){
     // newSet[0].makeUnion(newSet[1]); 
     // std::cout << newSet[0].find().vertex << "\n"; 
     // std::cout << newSet[1].find().vertex << "\n"; 
-
+    std::vector<float> p1 {0.2, 0.5};
+    std::vector<float> p2 {0.2, 0.3};
+    std::cout << (euclideanDist(p1, p2)) << "\n";
+    
 }
