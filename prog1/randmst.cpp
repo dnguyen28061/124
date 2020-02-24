@@ -167,6 +167,9 @@ int main(int argc, char* argv[]){
     std::cout << setList[8]->find()->vertex << "\n";
     std::cout << setList[2]->find()->vertex << "\n"; 
 
+    for(int i = 0; i < 10; i++){ 
+        free(setList[i]); 
+    }
     HeapNode a = HeapNode(1, 8);
     HeapNode b = HeapNode(2, 1);
     HeapNode c = HeapNode(3, 4);
