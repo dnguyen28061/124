@@ -281,11 +281,12 @@ int main(int argc, char* argv[]){
 
     }
     float sum = 0.0; 
+    float maxEdge = -1; 
     for(int i = 0; i < numpoints; ++i){
         assert(dist[i] < FLT_MAX); 
-        sum += dist[i]; 
+        maxEdge = std::max(maxEdge, dist[i]); 
     }
-    std::cout << sum << "\n"; 
+    std::cout << maxEdge << "\n"; 
     delete newGraph;
     delete s; 
 }
