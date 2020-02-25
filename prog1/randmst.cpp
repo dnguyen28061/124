@@ -11,6 +11,7 @@
 #include<float.h>
 #include<iterator>
 #include<math.h> 
+#include<numeric>
 
 // generates MSTs and calculates the average weight of the MST based on number of vertices 
 // usage: ./ 0 numpoints, numtrials, dimension 
@@ -186,28 +187,12 @@ float euclideanDist(std::vector<float>p1, std::vector<float>p2);
 struct Graph{ 
     public: 
     // adjacency matrix, where arr[i][j] is the weight from node i to j 
-    std::vector<std::vector<float>>verticesNeighbors; 
+    // std::vector<std::unordered_map<int, float>>verticesNeighbors; 
     std::vector<Vertex>verticesList;
     std::vector<Set *>setList; 
     Graph(int numNodes, int dimensions){
         for (int i = 0; i < numNodes; ++i){ 
             verticesList.push_back(Vertex(i, dimensions)); 
-        }
-        // iterate through each vertice pair find its edge weight 
-        for(int i = 0; i < numNodes; ++i){ 
-            // array that stores all outgoing edge weights from vertex i 
-            std::vector<float>vertexNeighbors; 
-            for(int j = 0; j < numNodes; ++j){ 
-                // if already calculated edge weight, then just retrieve from neighbor 
-                if(j < i){ 
-                    vertexNeighbors.push_back(verticesNeighbors[j][i]); 
-                }
-                else{ 
-                    float dist = euclideanDist(verticesList[i].coordinates, verticesList[j].coordinates);
-                    vertexNeighbors.push_back(dist); 
-                }
-            }
-            verticesNeighbors.push_back(vertexNeighbors); 
         }
         // create sets for all vertices 
         for(int i = 0; i < numNodes; ++i){ 
@@ -242,18 +227,6 @@ float euclideanDist(std::vector<float>p1, std::vector<float>p2) {
     return sqrt(dist);
 }
 
-float returnEdgeWeight(Graph* graph, int* arr, int arrSize){ 
-    // int arrSize = arr.size();  
-    float weightSum = 0.0;
-    // float maxEdge = -1.0; 
-    for (int i = 1; i < arrSize; ++i){ 
-        assert(arr[i] != -1); 
-        weightSum += graph->verticesNeighbors[i][arr[i]]; 
-        // maxEdge = std::max(graph->verticesNeighbors[i][arr[i]], maxEdge); 
-    }
-    // std::cout << maxEdge << "\n";
-    return (weightSum); 
-}
 
 int main(int argc, char* argv[]){ 
     if (argc != 5) {
@@ -289,8 +262,9 @@ int main(int argc, char* argv[]){
         for (int i = 0; i < numpoints; i++) { 
             // This line should say: if (i is in the disjoint set of all vertices minus the set s). Can you implement the set difference operation? {
             if (newGraph->setList[v.id]->find()->vertex != newGraph->setList[i]->find()->vertex){
-                if (i != v.id && dist[i] > newGraph->verticesNeighbors[v.id][i]) {
-                    dist[i] = newGraph->verticesNeighbors[v.id][i];
+                float distBetweenNodes = euclideanDist(newGraph->verticesList[v.id].coordinates, newGraph->verticesList[i].coordinates);
+                if (i != v.id && dist[i] > distBetweenNodes) {
+                    dist[i] = distBetweenNodes; 
                     prev[i] = v.id;
                     if (map.find(i) != map.end()) {
                         h.decreaseKey(dist[i],i);
@@ -306,7 +280,12 @@ int main(int argc, char* argv[]){
         }
 
     }
-    std::cout << returnEdgeWeight(newGraph, prev, sizeof(prev)/sizeof(prev[0])) << "\n"; 
+    float sum = 0.0; 
+    for(int i = 0; i < numpoints; ++i){
+        assert(dist[i] < FLT_MAX); 
+        sum += dist[i]; 
+    }
+    std::cout << sum << "\n"; 
     delete newGraph;
     delete s; 
 }
