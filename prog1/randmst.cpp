@@ -8,6 +8,9 @@
 #include<deque>
 #include<unordered_map>
 #include<climits>
+#include<float.h>
+#include<iterator>
+#include<math.h> 
 
 // generates MSTs and calculates the average weight of the MST based on number of vertices 
 // usage: ./ 0 numpoints, numtrials, dimension 
@@ -18,8 +21,8 @@
 struct HeapNode{
     public: 
         int id; 
-        int val; 
-    HeapNode(int num1, int num2){
+        float val; 
+    HeapNode(int num1, float num2){
         id = num1; 
         val = num2; 
     }
@@ -68,7 +71,7 @@ struct Heap {
     }; 
 
     // Decreases key of the given element
-    void decreaseKey(int newKey, int vertex){ 
+    void decreaseKey(float newKey, int vertex){ 
         this->heap[this->map[vertex]].val = newKey;
         heapifyUp(this->map[vertex]);
     }; 
@@ -202,7 +205,7 @@ struct Graph{
                 else{ 
                     float dist = euclideanDist(verticesList[i].coordinates, verticesList[j].coordinates);
                     vertexNeighbors.push_back(dist); 
-                }  
+                }
             }
             verticesNeighbors.push_back(vertexNeighbors); 
         }
@@ -236,16 +239,19 @@ float euclideanDist(std::vector<float>p1, std::vector<float>p2) {
     for (int i = 0; i < p1.size(); i++){
         dist += pow((p1[i] - p2[i]), 2.0);
     }
-    return dist;
+    return sqrt(dist);
 }
 
-float returnEdgeWeight(Graph* graph, int* arr){ 
-    int arrSize = sizeof(arr) / sizeof(arr[0]); 
-    float weightSum = 0.0; 
+float returnEdgeWeight(Graph* graph, int* arr, int arrSize){ 
+    // int arrSize = arr.size();  
+    float weightSum = 0.0;
+    // float maxEdge = -1.0; 
     for (int i = 1; i < arrSize; ++i){ 
         assert(arr[i] != -1); 
         weightSum += graph->verticesNeighbors[i][arr[i]]; 
+        // maxEdge = std::max(graph->verticesNeighbors[i][arr[i]], maxEdge); 
     }
+    // std::cout << maxEdge << "\n";
     return (weightSum); 
 }
 
@@ -259,9 +265,9 @@ int main(int argc, char* argv[]){
 
     Graph* newGraph = new Graph(numpoints, dimension); 
 
-    int dist[numpoints] = {INT_MAX}; 
+    float dist[numpoints] = {FLT_MAX}; 
     int prev[numpoints] = {-1};
-    std::fill_n(dist, numpoints, INT_MAX); 
+    std::fill_n(dist, numpoints, FLT_MAX); 
     std::fill_n(prev, numpoints, -1);
     Heap h = Heap((numpoints - 1 / 2));
     std::unordered_map<int, int>map;
@@ -300,7 +306,7 @@ int main(int argc, char* argv[]){
         }
 
     }
-    std::cout << returnEdgeWeight(newGraph, prev) << "\n"; 
+    std::cout << returnEdgeWeight(newGraph, prev, sizeof(prev)/sizeof(prev[0])) << "\n"; 
     delete newGraph;
     delete s; 
 }
