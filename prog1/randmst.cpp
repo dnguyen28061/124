@@ -135,7 +135,7 @@ struct Set{
             Set* parent = this->parent->find(); 
             this->parent = parent; 
         }
-        return this; 
+        return this->parent; 
     };    
 
     void makeUnion(Set* nodeToUnionWith){
@@ -242,7 +242,8 @@ float euclideanDist(std::vector<float>p1, std::vector<float>p2) {
 float returnEdgeWeight(Graph* graph, int* arr){ 
     int arrSize = sizeof(arr) / sizeof(arr[0]); 
     float weightSum = 0.0; 
-    for (int i = 0; i < arrSize; ++i){ 
+    for (int i = 1; i < arrSize; ++i){ 
+        assert(arr[i] != -1); 
         weightSum += graph->verticesNeighbors[i][arr[i]]; 
     }
     return (weightSum); 
@@ -252,9 +253,9 @@ int main(int argc, char* argv[]){
     if (argc != 5) {
         throw std::invalid_argument("Usage: ./randmst 0 numpoints trials dimension");
     }
-    int numpoints = int(argv[2][0]);
-    int trials = int(argv[3][0]);
-    int dimension = int(argv[4][0]);
+    int numpoints = atoi(argv[2]);
+    int trials = atoi(argv[3]);
+    int dimension = atoi(argv[4]);
 
     Graph* newGraph = new Graph(numpoints, dimension); 
 
@@ -266,7 +267,7 @@ int main(int argc, char* argv[]){
     std::unordered_map<int, int>map;
 
     //Can you modify the set implementation so we can initialize this as empty? If not, we can work around it but it's cleaner this way.   
-    Set s = Set(-1);
+    Set* s = new Set(-1);
 
     HeapNode node = HeapNode(0, 0);
     h.insert(node);
@@ -276,7 +277,8 @@ int main(int argc, char* argv[]){
         HeapNode v = h.extractMin(); 
 
         // Does this replace the set s with the union of set s and set v_set? If not can you change it to do so
-        s.makeUnion(newGraph->setList[v.id]);
+        s->makeUnion(newGraph->setList[v.id]);
+        assert(s->find()->vertex == newGraph->setList[v.id]->find()->vertex);
 
         for (int i = 0; i < numpoints; i++) { 
             // This line should say: if (i is in the disjoint set of all vertices minus the set s). Can you implement the set difference operation? {
@@ -300,6 +302,7 @@ int main(int argc, char* argv[]){
     }
     std::cout << returnEdgeWeight(newGraph, prev) << "\n"; 
     delete newGraph;
+    delete s; 
 }
 
 // float 
