@@ -142,7 +142,6 @@ struct Set{
     }; 
     // replace two sets containing x and y by their union.   
     void link(Set nodeToLinkWith){
-        
         Set smallRankNode = *this; 
         Set largeRankNode = nodeToLinkWith; 
         
@@ -178,13 +177,16 @@ struct Vertex{
 float euclideanDist(std::vector<float>p1, std::vector<float>p2); 
 struct Graph{ 
     public: 
+    // adjacency matrix, where arr[i][j] is the weight from node i to j 
     std::vector<std::vector<float>>verticesNeighbors; 
     Graph(int numNodes, int dimensions){
         for (int i = 0; i < numNodes; ++i){ 
             verticesList.push_back(Vertex(i, dimensions)); 
         }
+        // iterate through each vertice pair find its edge weight 
         for(int i = 0; i < numNodes; ++i){ 
-            std::vector<float>vertexNeighbors; // arr[i] = weight of edge to ith neighbor 
+            // array that stores all outgoing edge weights from vertex i 
+            std::vector<float>vertexNeighbors; 
             for(int j = 0; j < numNodes; ++j){ 
                 // if already calculated edge weight, then just retrieve from neighbor 
                 if(j < i){ 
@@ -221,6 +223,7 @@ float euclideanDist(std::vector<float>p1, std::vector<float>p2) {
     }
     return dist;
 }
+
 
 int main(int argc, char* argv[]){ 
     // std::vector<Set>newSet = {Set(5), Set(4)}; 
