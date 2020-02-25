@@ -160,6 +160,47 @@ struct Set{
     }; // connect two nodes with union by rank 
 };
 
+// Construct graph with numNodes in dimensions from 2-4.
+float randomgen(); 
+struct Vertex{
+    public: 
+    int id; 
+    std::vector<float>coordinates; 
+    Vertex(int idNum, int numDimensions){ 
+        id = idNum; 
+        for (int i = 0; i < numDimensions; i++){ 
+            float coord = randomgen(); 
+            coordinates.push_back(coord); 
+        }
+    }
+}; 
+
+float euclideanDist(std::vector<float>p1, std::vector<float>p2); 
+struct Graph{ 
+    public: 
+    std::vector<std::vector<float>>verticesNeighbors; 
+    Graph(int numNodes, int dimensions){
+        for (int i = 0; i < numNodes; ++i){ 
+            verticesList.push_back(Vertex(i, dimensions)); 
+        }
+        for(int i = 0; i < numNodes; ++i){ 
+            std::vector<float>vertexNeighbors; // arr[i] = weight of edge to ith neighbor 
+            for(int j = 0; j < numNodes; ++j){ 
+                // if already calculated edge weight, then just retrieve from neighbor 
+                if(j < i){ 
+                    vertexNeighbors.push_back(verticesNeighbors[j][i]); 
+                }
+                else{ 
+                    float dist = euclideanDist(verticesList[i].coordinates, verticesList[j].coordinates);
+                    vertexNeighbors.push_back(dist); 
+                }  
+            }
+            verticesNeighbors.push_back(vertexNeighbors); 
+        }
+    }
+    private: 
+        std::vector<Vertex>verticesList;  
+};
 
 
 float randomgen(){
@@ -170,6 +211,9 @@ float randomgen(){
 };
 
 float euclideanDist(std::vector<float>p1, std::vector<float>p2) { 
+    if (p1.size() != p2.size()){ 
+        printf("p1 = %d, p2 = %d\n", p1.size(), p2.size()); 
+    }
     assert(p1.size() == p2.size());
     float dist = 0.0;
     for (int i = 0; i < p1.size(); i++){
@@ -190,8 +234,11 @@ int main(int argc, char* argv[]){
     // newSet[0].makeUnion(newSet[1]); 
     // std::cout << newSet[0].find().vertex << "\n"; 
     // std::cout << newSet[1].find().vertex << "\n"; 
-    std::vector<float> p1 {0.2, 0.5};
-    std::vector<float> p2 {0.2, 0.3};
-    std::cout << (euclideanDist(p1, p2)) << "\n";
+    // std::vector<float> p1 {0.2, 0.5};
+    // std::vector<float> p2 {0.2, 0.3};
+    // std::cout << (euclideanDist(p1, p2)) << "\n";
+    Graph newGraph = Graph(10, 100000); 
+
+
     
 }
