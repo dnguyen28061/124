@@ -129,38 +129,38 @@ struct Set{
         parent = this; 
     };    
 
-    Set find(){
+    Set* find(){
         // printf("%d", this->parent == this); 
         if (this->parent != this){
-            Set parent = this->parent->find(); 
-            this->parent = &parent; 
+            Set* parent = this->parent->find(); 
+            this->parent = parent; 
         }
-        return *this; 
+        return this; 
     };    
 
-    void makeUnion(Set nodeToUnionWith){
+    void makeUnion(Set* nodeToUnionWith){
         
-        Set parent1 = this->find(); 
-        Set parent2 = nodeToUnionWith.find(); 
+        Set* parent1 = this->find(); 
+        Set* parent2 = nodeToUnionWith->find(); 
         
-        parent1.link(parent2); 
+        parent1->link(parent2); 
     }; 
     // replace two sets containing x and y by their union.   
-    void link(Set nodeToLinkWith){
-        Set smallRankNode = *this; 
-        Set largeRankNode = nodeToLinkWith; 
+    void link(Set* nodeToLinkWith){
+        Set* smallRankNode = this; 
+        Set* largeRankNode = nodeToLinkWith; 
         
-        if (smallRankNode.rank > largeRankNode.rank){ 
-            Set temp = smallRankNode; 
+        if (smallRankNode->rank > largeRankNode->rank){ 
+            Set* temp = smallRankNode; 
             smallRankNode = largeRankNode; 
             largeRankNode = temp; 
         }
         // only increase rank when ranks are equal. 
-        if(smallRankNode.rank == largeRankNode.rank){ 
-            largeRankNode.rank++; 
+        if(smallRankNode->rank == largeRankNode->rank){ 
+            largeRankNode->rank++; 
         }
         // point smaller rank node to larger rank node. 
-        smallRankNode.parent = &largeRankNode; 
+        smallRankNode->parent = largeRankNode; 
     }; // connect two nodes with union by rank 
 };
 
@@ -185,6 +185,7 @@ struct Graph{
     // adjacency matrix, where arr[i][j] is the weight from node i to j 
     std::vector<std::vector<float>>verticesNeighbors; 
     std::vector<Vertex>verticesList;
+    std::vector<Set *>setList; 
     Graph(int numNodes, int dimensions){
         for (int i = 0; i < numNodes; ++i){ 
             verticesList.push_back(Vertex(i, dimensions)); 
@@ -205,6 +206,15 @@ struct Graph{
             }
             verticesNeighbors.push_back(vertexNeighbors); 
         }
+        // create sets for all vertices 
+        for(int i = 0; i < numNodes; ++i){ 
+            setList.push_back(new Set(i)); 
+        }
+    }
+    ~Graph(){
+        for(int i = 0; i < setList.size(); ++i){ 
+            delete setList[i]; 
+        }
     }
       
 };
@@ -219,7 +229,7 @@ float randomgen(){
 
 float euclideanDist(std::vector<float>p1, std::vector<float>p2) { 
     if (p1.size() != p2.size()){ 
-        printf("p1 = %d, p2 = %d\n", p1.size(), p2.size()); 
+        printf("p1 = %lu, p2 = %lu\n", p1.size(), p2.size()); 
     }
     assert(p1.size() == p2.size());
     float dist = 0.0;
@@ -229,52 +239,67 @@ float euclideanDist(std::vector<float>p1, std::vector<float>p2) {
     return dist;
 }
 
+float returnEdgeWeight(Graph* graph, int* arr){ 
+    int arrSize = sizeof(arr) / sizeof(arr[0]); 
+    float weightSum = 0.0; 
+    for (int i = 0; i < arrSize; ++i){ 
+        weightSum += graph->verticesNeighbors[i][arr[i]]; 
+    }
+    return (weightSum); 
+}
 
 int main(int argc, char* argv[]){ 
     if (argc != 5) {
         throw std::invalid_argument("Usage: ./randmst 0 numpoints trials dimension");
     }
-    int numpoints = int(argv[2]);
-    int trials = int(argv[3]);
-    int dimension = int(argv[4]);
+    int numpoints = int(argv[2][0]);
+    int trials = int(argv[3][0]);
+    int dimension = int(argv[4][0]);
 
-    Graph newGraph = Graph(numpoints, dimension); 
+    Graph* newGraph = new Graph(numpoints, dimension); 
 
     int dist[numpoints] = {INT_MAX}; 
     int prev[numpoints] = {-1};
+    std::fill_n(dist, numpoints, INT_MAX); 
+    std::fill_n(prev, numpoints, -1);
     Heap h = Heap((numpoints - 1 / 2));
     std::unordered_map<int, int>map;
 
     //Can you modify the set implementation so we can initialize this as empty? If not, we can work around it but it's cleaner this way.   
-    Set s = Set(0);
+    Set s = Set(-1);
 
     HeapNode node = HeapNode(0, 0);
     h.insert(node);
     map[0] = 1;
-    
     dist[0] = 0;
     while (h.notNull()) {
         HeapNode v = h.extractMin(); 
-        Set v_set = Set(v.id);
 
         // Does this replace the set s with the union of set s and set v_set? If not can you change it to do so
-        s.makeUnion(v_set);
+        s.makeUnion(newGraph->setList[v.id]);
 
         for (int i = 0; i < numpoints; i++) { 
             // This line should say: if (i is in the disjoint set of all vertices minus the set s). Can you implement the set difference operation? {
-                if (i != v.id && dist[i] > newGraph.verticesNeighbors[v.id][i]) {
-                    dist[i] = newGraph.verticesNeighbors[v.id][i];
+            if (newGraph->setList[v.id]->find()->vertex != newGraph->setList[i]->find()->vertex){
+                if (i != v.id && dist[i] > newGraph->verticesNeighbors[v.id][i]) {
+                    dist[i] = newGraph->verticesNeighbors[v.id][i];
                     prev[i] = v.id;
                     if (map.find(i) != map.end()) {
                         h.decreaseKey(dist[i],i);
-                    } else {
+                    } 
+                    else {
                         HeapNode newnode = HeapNode(i, dist[i]);
                         h.insert(newnode);
                         map[i] = 1;
                     }
                 }
             }
+
         }
 
     }
+    std::cout << returnEdgeWeight(newGraph, prev) << "\n"; 
+    delete newGraph;
 }
+
+// float 
