@@ -7,6 +7,7 @@
 #include<random>
 #include<deque>
 #include<unordered_map>
+#include<climits>
 
 // generates MSTs and calculates the average weight of the MST based on number of vertices 
 // usage: ./ 0 numpoints, numtrials, dimension 
@@ -34,6 +35,10 @@ struct Heap {
     Heap(int num) {
         k = num; 
     };    
+
+    bool notNull() {
+        return (this->heap.size() > 0); 
+    };
 
     HeapNode peek(){ 
         return this->heap[0]; 
@@ -179,6 +184,7 @@ float euclideanDist(std::vector<float>p1, std::vector<float>p2);
 struct Graph{ 
     public: 
     std::vector<std::vector<float>>verticesNeighbors; 
+    std::vector<Vertex>verticesList;
     Graph(int numNodes, int dimensions){
         for (int i = 0; i < numNodes; ++i){ 
             verticesList.push_back(Vertex(i, dimensions)); 
@@ -198,8 +204,7 @@ struct Graph{
             verticesNeighbors.push_back(vertexNeighbors); 
         }
     }
-    private: 
-        std::vector<Vertex>verticesList;  
+      
 };
 
 
@@ -223,22 +228,50 @@ float euclideanDist(std::vector<float>p1, std::vector<float>p2) {
 }
 
 int main(int argc, char* argv[]){ 
-    // std::vector<Set>newSet = {Set(5), Set(4)}; 
-    // newSet[0].link(&newSet[1]); 
-    // std::cout << newSet[0].find()->vertex << "\n"; 
-    // std::cout << newSet[1].find()->vertex << "\n"; 
-    // printf("no seg");
-    // std::vector<Set>newSet; 
-    // newSet.push_back(Set(5)); 
-    // newSet.push_back(Set(4)); 
-    // newSet[0].makeUnion(newSet[1]); 
-    // std::cout << newSet[0].find().vertex << "\n"; 
-    // std::cout << newSet[1].find().vertex << "\n"; 
-    // std::vector<float> p1 {0.2, 0.5};
-    // std::vector<float> p2 {0.2, 0.3};
-    // std::cout << (euclideanDist(p1, p2)) << "\n";
-    Graph newGraph = Graph(10, 100000); 
+    if (argc != 5) {
+        throw std::invalid_argument("Usage: ./randmst 0 numpoints trials dimension");
+    }
+    int numpoints = int(argv[2]);
+    int trials = int(argv[3]);
+    int dimension = int(argv[4]);
 
+    Graph newGraph = Graph(numpoints, dimension); 
 
+    int dist[numpoints] = {INT_MAX}; 
+    int prev[numpoints] = {-1};
+    Heap h = Heap((numpoints - 1 / 2));
+    std::unordered_map<int, int>map;
+
+    //Can you modify the set implementation so we can initialize this as empty? If not, we can work around it but it's cleaner this way.   
+    Set s = Set(0);
+
+    HeapNode node = HeapNode(0, 0);
+    h.insert(node);
+    map[0] = 1;
     
+    dist[0] = 0;
+    while (h.notNull()) {
+        HeapNode v = h.extractMin(); 
+        Set v_set = Set(v.id);
+
+        // Does this replace the set s with the union of set s and set v_set? If not can you change it to do so
+        s.makeUnion(v_set);
+
+        for (int i = 0; i < numpoints; i++) { 
+            // This line should say: if (i is in the disjoint set of all vertices minus the set s). Can you implement the set difference operation? {
+                if (i != v.id && dist[i] > newGraph.verticesNeighbors[v.id][i]) {
+                    dist[i] = newGraph.verticesNeighbors[v.id][i];
+                    prev[i] = v.id;
+                    if (map.find(i) != map.end()) {
+                        h.decreaseKey(dist[i],i);
+                    } else {
+                        HeapNode newnode = HeapNode(i, dist[i]);
+                        h.insert(newnode);
+                        map[i] = 1;
+                    }
+                }
+            }
+        }
+
+    }
 }
