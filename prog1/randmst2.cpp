@@ -183,27 +183,49 @@ struct Vertex{
     }
 }; 
 
+struct Node{
+    public: 
+    Node* next = nullptr; 
+    Node* prev = nullptr;
+    int id; 
+    Vertex* vert = nullptr; 
+    float distToMST;  
+    Node(int num, Vertex* vertex){
+        id = num; 
+        distToMST = FLT_MAX; 
+        vert = vertex; 
+    }   
+}; 
 float euclideanDist(std::vector<float>p1, std::vector<float>p2); 
 struct Graph{ 
     public: 
     // adjacency matrix, where arr[i][j] is the weight from node i to j 
     // std::vector<std::unordered_map<int, float>>verticesNeighbors; 
-    std::vector<Vertex>verticesList;
+    Node* nonMstVert;
     std::vector<Set *>setList; 
     Graph(int numNodes, int dimensions){
-        for (int i = 0; i < numNodes; ++i){ 
-            verticesList.push_back(Vertex(i, dimensions)); 
+        // for (int i = 0; i < numNodes; ++i){ 
+        //     verticesList.push_back(Vertex(i, dimensions)); 
+        // }
+        nonMstVert = new Node(0, new Vertex(0, dimensions)); 
+        nonMstVert->distToMST = 0; 
+        Node* dummy = nonMstVert; 
+        for(int i = 1; i < numNodes; ++i){ 
+            dummy->next = new Node(i, new Vertex(i, dimensions)); 
+            dummy->next->prev = dummy; 
+            dummy = dummy->next;  
         }
+
         // create sets for all vertices 
-        for(int i = 0; i < numNodes; ++i){ 
-            setList.push_back(new Set(i)); 
-        }
+        // for(int i = 0; i < numNodes; ++i){ 
+        //     setList.push_back(new Set(i)); 
+        // }
     }
-    ~Graph(){
-        for(int i = 0; i < setList.size(); ++i){ 
-            delete setList[i]; 
-        }
-    }
+    // ~Graph(){
+    //     for(int i = 0; i < setList.size(); ++i){ 
+    //         delete setList[i]; 
+    //     }
+    // }
       
 };
 
@@ -227,6 +249,56 @@ float euclideanDist(std::vector<float>p1, std::vector<float>p2) {
     return sqrt(dist);
 }
 
+/* 
+@params: graph 
+         node: node in the set of nodes not in MST. 
+               Removes this node and updates the set of nodes not in MST. 
+*/ 
+void removeNode(Node* node, Graph* graph){
+    // in the middle 
+    if (node->next && node->prev){
+        node->prev->next = node->next; 
+        node->next->prev = node->prev;     
+    }
+    // first pointer 
+    else if (node->next && node->prev == nullptr){ 
+        node->next->prev = nullptr; 
+        graph->nonMstVert = node->next; 
+    }
+    // last pointer 
+    else if (node->next == nullptr && node->prev){
+        node->prev->next = nullptr; 
+    }
+    else{
+        graph->nonMstVert = nullptr; 
+    }
+
+}
+/*
+@params: graph, MSTNode: current node in the MST
+Traverses through the nodes that are not already in the MST. Updates distance if closer to MSTNode. 
+@return: node closest to MST. 
+*/ 
+Node* traverseAndGetMin(Graph* graph, Node* MSTNode){
+    // have traversed all nodes 
+    if (graph->nonMstVert == nullptr){
+        return nullptr; 
+    }
+    Node* closestNodeToMST = graph->nonMstVert;  
+    Node* nonMstNode = graph->nonMstVert; 
+    while (nonMstNode != nullptr){
+        float newDistToMST = euclideanDist(MSTNode->vert->coordinates, nonMstNode->vert->coordinates); 
+        if (newDistToMST < nonMstNode->distToMST) {
+            nonMstNode->distToMST = newDistToMST; 
+        }
+        if (nonMstNode->distToMST < closestNodeToMST->distToMST){
+            closestNodeToMST = nonMstNode; 
+        }
+        nonMstNode = nonMstNode->next; 
+    }
+    removeNode(closestNodeToMST, graph); 
+    return closestNodeToMST; 
+}
 
 int main(int argc, char* argv[]){ 
     if (argc != 5) {
@@ -235,60 +307,80 @@ int main(int argc, char* argv[]){
     int numpoints = atoi(argv[2]);
     int trials = atoi(argv[3]);
     int dimension = atoi(argv[4]);
+    Graph* graph = new Graph(numpoints, dimension); 
+    float totalWeight = 0.0; 
 
-    Graph* newGraph = new Graph(numpoints, dimension); 
-
-    float dist[numpoints] = {FLT_MAX}; 
-    int prev[numpoints] = {-1};
-    std::fill_n(dist, numpoints, FLT_MAX); 
-    std::fill_n(prev, numpoints, -1);
-    Heap h = Heap((numpoints - 1 / 2));
-    std::unordered_map<int, int>map;
-
-    //Can you modify the set implementation so we can initialize this as empty? If not, we can work around it but it's cleaner this way.   
-    Set* s = new Set(-1);
-
-    HeapNode node = HeapNode(0, 0);
-    h.insert(node);
-    map[0] = 1;
-    dist[0] = 0;
-    while (h.notNull()) {
-        HeapNode v = h.extractMin(); 
-
-        // Does this replace the set s with the union of set s and set v_set? If not can you change it to do so
-        s->makeUnion(newGraph->setList[v.id]);
-        assert(s->find()->vertex == newGraph->setList[v.id]->find()->vertex);
-
-        for (int i = 0; i < numpoints; i++) { 
-            // This line should say: if (i is in the disjoint set of all vertices minus the set s). Can you implement the set difference operation? {
-            if (newGraph->setList[v.id]->find()->vertex != newGraph->setList[i]->find()->vertex){
-                float distBetweenNodes = euclideanDist(newGraph->verticesList[v.id].coordinates, newGraph->verticesList[i].coordinates);
-                if (i != v.id && dist[i] > distBetweenNodes) {
-                    dist[i] = distBetweenNodes; 
-                    prev[i] = v.id;
-                    if (map.find(i) != map.end()) {
-                        h.decreaseKey(dist[i],i);
-                    } 
-                    else {
-                        HeapNode newnode = HeapNode(i, dist[i]);
-                        h.insert(newnode);
-                        map[i] = 1;
-                    }
-                }
-            }
-
-        }
-
+    // Remove first node of the MST and update the doubly linked list 
+    Node* currNode = graph->nonMstVert; 
+    graph->nonMstVert = graph->nonMstVert->next; 
+    graph->nonMstVert->prev = nullptr; 
+    
+    while(currNode != nullptr){ 
+        totalWeight += currNode->distToMST; 
+        currNode = traverseAndGetMin(graph, currNode); 
     }
-    float sum = 0.0; 
-    float maxEdge = -1; 
-    for(int i = 0; i < numpoints; ++i){
-        assert(dist[i] < FLT_MAX); 
-        sum += dist[i];
-    }
-    std::cout << sum << "\n"; 
-    delete newGraph;
-    delete s; 
+    std::cout << totalWeight; 
+
+    // if (argc != 5) {
+    //     throw std::invalid_argument("Usage: ./randmst 0 numpoints trials dimension");
+    // }
+    // int numpoints = atoi(argv[2]);
+    // int trials = atoi(argv[3]);
+    // int dimension = atoi(argv[4]);
+
+    // Graph* newGraph = new Graph(numpoints, dimension); 
+
+    // float dist[numpoints] = {FLT_MAX}; 
+    // int prev[numpoints] = {-1};
+    // std::fill_n(dist, numpoints, FLT_MAX); 
+    // std::fill_n(prev, numpoints, -1);
+    // Heap h = Heap((numpoints - 1 / 2));
+    // std::unordered_map<int, int>map;
+
+    // //Can you modify the set implementation so we can initialize this as empty? If not, we can work around it but it's cleaner this way.   
+    // Set* s = new Set(-1);
+
+    // HeapNode node = HeapNode(0, 0);
+    // h.insert(node);
+    // map[0] = 1;
+    // dist[0] = 0;
+    // while (h.notNull()) {
+    //     HeapNode v = h.extractMin(); 
+
+    //     // Does this replace the set s with the union of set s and set v_set? If not can you change it to do so
+    //     s->makeUnion(newGraph->setList[v.id]);
+    //     assert(s->find()->vertex == newGraph->setList[v.id]->find()->vertex);
+
+    //     for (int i = 0; i < numpoints; i++) { 
+    //         // This line should say: if (i is in the disjoint set of all vertices minus the set s). Can you implement the set difference operation? {
+    //         if (newGraph->setList[v.id]->find()->vertex != newGraph->setList[i]->find()->vertex){
+    //             float distBetweenNodes = euclideanDist(newGraph->verticesList[v.id].coordinates, newGraph->verticesList[i].coordinates);
+    //             if (i != v.id && dist[i] > distBetweenNodes) {
+    //                 dist[i] = distBetweenNodes; 
+    //                 prev[i] = v.id;
+    //                 if (map.find(i) != map.end()) {
+    //                     h.decreaseKey(dist[i],i);
+    //                 } 
+    //                 else {
+    //                     HeapNode newnode = HeapNode(i, dist[i]);
+    //                     h.insert(newnode);
+    //                     map[i] = 1;
+    //                 }
+    //             }
+    //         }
+
+    //     }
+
+    // }
+    // float sum = 0.0; 
+    // float maxEdge = -1; 
+    // for(int i = 0; i < numpoints; ++i){
+    //     assert(dist[i] < FLT_MAX); 
+    //     maxEdge = std::max(maxEdge, dist[i]); 
+    // }
+    // std::cout << maxEdge << "\n"; 
+    // delete newGraph;
+    // delete s; 
 }
 
 // float 
