@@ -262,7 +262,12 @@ int main(int argc, char* argv[]){
         for (int i = 0; i < numpoints; i++) { 
             // This line should say: if (i is in the disjoint set of all vertices minus the set s). Can you implement the set difference operation? {
             if (newGraph->setList[v.id]->find()->vertex != newGraph->setList[i]->find()->vertex){
-                float distBetweenNodes = euclideanDist(newGraph->verticesList[v.id].coordinates, newGraph->verticesList[i].coordinates);
+                float distBetweenNodes;
+                if(dimension == 1) {
+                    distBetweenNodes = randomgen();
+                } else {
+                    distBetweenNodes = euclideanDist(newGraph->verticesList[v.id].coordinates, newGraph->verticesList[i].coordinates);
+                }
                 if (i != v.id && dist[i] > distBetweenNodes) {
                     dist[i] = distBetweenNodes; 
                     prev[i] = v.id;
