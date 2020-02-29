@@ -1,0 +1,12 @@
+# !/bin/bash
+
+for a in 1 2 3 4 5 
+do 
+    for b in 131072 262144
+    do 
+        for c in 4 3 2 
+        do 
+            ./a.out 0 $b 1 $c 
+        done 
+    done 
+done 
